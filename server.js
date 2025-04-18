@@ -15,6 +15,11 @@ connectDB();
 app.use(express.json());
 app.use(cors());
 
+// Root route
+app.get('/', (req, res) => {
+    res.json({ message: 'API is running' });
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 
