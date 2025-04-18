@@ -13,17 +13,44 @@ connectDB();
 
 // Middleware
 app.use(express.json());
-app.use(cors({
-    origin: [
-        'http://localhost:3000',
-        'https://data-insights-frontend.vercel.app'
+
+// CORS configuration
+const allowedOrigins = [
+    'http://localhost:3000',
+    'https://data-insights-frontend.vercel.app',
+    'https://data-insights-backend-ten.vercel.app'
+];
+
+const corsOptions = {
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: [
+        'Content-Type',
+        'Authorization',
+        'X-Requested-With',
+        'Accept',
+        'Origin',
+        'Access-Control-Allow-Origin'
     ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
     preflightContinue: false,
     optionsSuccessStatus: 204
-}));
+};
+
+// Apply CORS middleware
+app.use(cors(corsOptions));
+
+// Handle preflight requests
+app.options('*', cors(corsOptions));
 
 // Logging middleware
 app.use((req, res, next) => {
@@ -40,9 +67,6 @@ app.get('/', (req, res) => {
 app.get('/api/test', (req, res) => {
     res.json({ message: 'API test endpoint is working' });
 });
-
-// Handle OPTIONS requests
-app.options('*', cors());
 
 // Routes
 app.use('/api/auth', authRoutes);
