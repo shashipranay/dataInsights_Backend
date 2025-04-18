@@ -13,15 +13,48 @@ connectDB();
 
 // Middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    origin: [
+        'http://localhost:3000',
+        'https://data-insights-frontend.vercel.app'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204
+}));
+
+// Logging middleware
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url} from ${req.headers.origin}`);
+    next();
+});
 
 // Root route
 app.get('/', (req, res) => {
     res.json({ message: 'API is running' });
 });
 
+// Test route
+app.get('/api/test', (req, res) => {
+    res.json({ message: 'API test endpoint is working' });
+});
+
+// Handle OPTIONS requests
+app.options('*', cors());
+
 // Routes
 app.use('/api/auth', authRoutes);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ 
+        message: 'Something went wrong!',
+        error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+});
 
 const PORT = process.env.PORT || 5000;
 
