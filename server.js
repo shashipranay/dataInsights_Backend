@@ -17,6 +17,7 @@ app.use(express.json());
 // CORS configuration
 const allowedOrigins = [
     'http://localhost:3000',
+    'https://data-insights-frontend-gilt.vercel.app',
     'https://data-insights-frontend.vercel.app',
     'https://data-insights-backend-ten.vercel.app'
 ];
@@ -29,6 +30,7 @@ const corsOptions = {
         if (allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
+            console.log('CORS blocked for origin:', origin);
             callback(new Error('Not allowed by CORS'));
         }
     },
@@ -39,11 +41,14 @@ const corsOptions = {
         'X-Requested-With',
         'Accept',
         'Origin',
-        'Access-Control-Allow-Origin'
+        'Access-Control-Allow-Origin',
+        'Access-Control-Allow-Headers',
+        'Access-Control-Allow-Methods'
     ],
     credentials: true,
     preflightContinue: false,
-    optionsSuccessStatus: 204
+    optionsSuccessStatus: 204,
+    maxAge: 86400 // 24 hours
 };
 
 // Apply CORS middleware
@@ -51,6 +56,15 @@ app.use(cors(corsOptions));
 
 // Handle preflight requests
 app.options('*', cors(corsOptions));
+
+// Add CORS headers to all responses
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', req.headers.origin);
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    next();
+});
 
 // Logging middleware
 app.use((req, res, next) => {
